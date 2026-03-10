@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RZ Systems | Cloud Pro v17.3</title>
+    <title>RZ Systems | Cloud Pro v17.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -17,6 +17,8 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         input, select, textarea { background: #1e293b !important; border: 1px solid #334155 !important; color: white !important; border-radius: 10px; padding: 10px; outline: none; width: 100%; }
         .card { background: #111827; border: 1px solid #1f2937; border-radius: 24px; padding: 24px; }
+        .sync-active { color: #22c55e; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         #pdf-render-zone { position: absolute; bottom: 0; right: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0.1; background: white; }
         .factura-box { width: 800px; background: white; color: black; padding: 40px; }
     </style>
@@ -24,58 +26,20 @@
 <body>
 
     <div id="lock-screen" class="fixed inset-0 bg-[#0b1120] z-[9999] flex flex-col items-center justify-center">
-        <div class="text-center">
+        <div class="text-center p-8 card border-cyan-500/20 max-w-sm w-full">
             <h1 class="text-4xl font-black italic mb-2 text-white">RZ <span class="text-cyan-400">SYSTEMS</span></h1>
-            <p class="text-slate-500 text-[10px] mb-6 tracking-widest uppercase font-bold">Terminal de Acceso Seguro</p>
-            <input type="password" id="pin-input" maxlength="4" placeholder="••••" class="text-center text-3xl tracking-[15px] w-48 mb-6 !bg-slate-900 border-none">
-            <br>
-            <button onclick="checkPin()" class="bg-cyan-500 text-slate-900 px-10 py-3 rounded-2xl font-black hover:scale-105 transition-transform shadow-lg shadow-cyan-500/20">ACCEDER</button>
-        </div>
-    </div>
-
-    <div id="pdf-render-zone">
-        <div id="factura-documento" class="factura-box">
-            <div style="background: #0b1120; color: white; padding: 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 10px 10px 0 0;">
-                <div>
-                    <h1 style="font-size: 28px; font-weight: 900; margin: 0;">RZ <span style="color: #00e5ff;">SYSTEMS</span></h1>
-                    <p style="font-size: 9px; color: #94a3b8; margin-top: 5px;">📍 Floridablanca | 📱 311 590 7997 | ✉️ rzsystemsbga@gmail.com</p>
-                </div>
-                <div style="text-align: right;">
-                    <p id="pdf-titulo-doc" style="margin: 0; font-size: 10px; font-weight: bold; color: #00e5ff; text-transform: uppercase;">---</p>
-                    <p id="pdf-num" style="margin: 0; font-size: 22px; font-weight: 900;">---</p>
-                </div>
-            </div>
-            <div style="padding: 30px; color: black !important; background: white;">
-                <div style="margin-bottom: 25px; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 15px;">
-                    <div>
-                        <p style="font-size: 9px; color: #666; margin: 0; font-weight: bold;">CLIENTE:</p>
-                        <p id="pdf-cliente" style="font-size: 16px; font-weight: bold; margin: 0;">---</p>
-                        <p id="pdf-dir-correo" style="font-size: 10px; margin: 0;">---</p>
-                    </div>
-                    <div style="text-align: right;"><p id="pdf-fecha" style="font-size: 11px; font-weight: bold;">---</p></div>
-                </div>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                    <thead>
-                        <tr style="background: #f8fafc; font-size: 10px; border-bottom: 2px solid #0b1120;">
-                            <th style="padding: 12px; text-align: left;">DESCRIPCIÓN</th>
-                            <th style="padding: 12px; text-align: center;">CANT</th>
-                            <th style="padding: 12px; text-align: right;">V. UNIT</th>
-                            <th style="padding: 12px; text-align: right;">TOTAL</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pdf-tabla-body"></tbody>
-                </table>
-                <div style="display: flex; justify-content: flex-end;">
-                    <div id="pdf-bloque-totales" style="width: 280px; border-top: 2px solid #eee; padding-top: 15px;"></div>
-                </div>
-                <div style="margin-top: 50px; padding: 12px; background: #fffbeb; border: 1px solid #fef3c7; text-align: center; font-size: 9px; color: #92400e; font-weight: bold;">
-                    ⚠️ NOTA: Factura de venta interna de RZ SYSTEMS. No constituye factura electrónica (DIAN).
-                </div>
-            </div>
+            <p id="lock-msg" class="text-slate-500 text-[10px] mb-6 tracking-widest uppercase font-bold">Cargando seguridad...</p>
+            <input type="password" id="pin-input" maxlength="4" placeholder="••••" class="text-center text-4xl tracking-[10px] w-full mb-6 !bg-slate-900 border-none">
+            <button id="btn-lock" onclick="handleLock()" class="w-full bg-cyan-500 text-slate-900 py-4 rounded-2xl font-black hover:scale-105 transition-transform">ENTRAR</button>
         </div>
     </div>
 
     <div id="main-app" class="flex h-screen opacity-0 transition-opacity duration-500">
+        <div class="fixed top-0 right-0 p-6 z-[50] flex items-center gap-3">
+            <span id="sync-status-text" class="text-[10px] font-bold text-slate-500 uppercase">Nube RZ</span>
+            <i id="sync-icon" class="fas fa-cloud text-slate-700 text-xl"></i>
+        </div>
+
         <aside class="w-64 bg-slate-900 p-6 flex flex-col border-r border-slate-800">
             <h1 class="text-xl font-black italic mb-10 text-white">RZ <span class="text-cyan-400">CLOUD</span></h1>
             <nav class="space-y-2 flex-grow">
@@ -84,7 +48,7 @@
                 <div onclick="showSection('facturador', this)" class="sidebar-link p-3 flex items-center gap-3"><i class="fas fa-plus-circle"></i> Facturar</div>
                 <div onclick="showSection('historial', this)" class="sidebar-link p-3 flex items-center gap-3"><i class="fas fa-history"></i> Historial</div>
             </nav>
-            <button onclick="location.reload()" class="text-rose-500 text-xs font-bold uppercase p-4 border border-rose-500/20 rounded-xl hover:bg-rose-500/10 transition-colors">Cerrar Sesión</button>
+            <button onclick="logout()" class="text-rose-500 text-xs font-bold uppercase p-4 border border-rose-500/20 rounded-xl hover:bg-rose-500/10 transition-colors">Cerrar Sesión</button>
         </aside>
 
         <main class="flex-grow p-10 bg-slate-950 overflow-y-auto">
@@ -98,7 +62,7 @@
                     <select id="doc-tercero-select" class="mb-6"></select>
                     
                     <div class="bg-slate-800/30 p-4 rounded-xl mb-6">
-                        <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-3">Servicios Detallados</h3>
+                        <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-3 italic">Servicios (Items)</h3>
                         <div id="items-container" class="space-y-3"></div>
                         <button onclick="addItem()" class="mt-4 text-cyan-400 text-xs font-bold underline">+ AGREGAR LÍNEA</button>
                     </div>
@@ -114,7 +78,7 @@
                     <div id="val-total" class="bg-cyan-500 text-slate-950 p-6 rounded-2xl text-4xl font-black text-center mb-8 italic">TOTAL: $ 0</div>
                     
                     <div class="flex gap-4">
-                        <button onclick="guardarDoc()" class="flex-grow bg-emerald-600 py-4 rounded-xl font-black hover:bg-emerald-500 transition-colors">GUARDAR</button>
+                        <button onclick="guardarDoc()" class="flex-grow bg-emerald-600 py-4 rounded-xl font-black hover:bg-emerald-500 transition-colors">GUARDAR Y SINCRONIZAR</button>
                         <button id="btn-pdf-quick" onclick="generarPDF()" class="hidden flex-grow bg-white text-slate-950 py-4 rounded-xl font-black italic shadow-lg">DESCARGAR PDF</button>
                     </div>
                 </div>
@@ -134,59 +98,90 @@
         </main>
     </div>
 
-    <div id="modal-tercero" class="hidden fixed inset-0 bg-black/95 z-[1000] flex items-center justify-center p-4">
-        <div class="card w-full max-w-sm">
-            <h3 class="font-black text-cyan-400 mb-6 uppercase">Registrar Cliente</h3>
-            <input type="text" id="m-nom" placeholder="Nombre completo" class="mb-2">
-            <input type="text" id="m-tel" placeholder="Teléfono" class="mb-2">
-            <input type="text" id="m-dir" placeholder="Dirección" class="mb-2">
-            <input type="email" id="m-email" placeholder="Correo" class="mb-6">
-            <div class="flex gap-2">
-                <button onclick="closeModal()" class="flex-grow bg-slate-800 py-3 rounded-xl font-bold">Cerrar</button>
-                <button onclick="confirmarRegistro()" class="flex-grow bg-cyan-500 text-black py-3 rounded-xl font-bold">Guardar</button>
+    <div id="pdf-render-zone">
+        <div id="factura-documento" class="factura-box">
+            <div style="background: #0b1120; color: white; padding: 30px; display: flex; justify-content: space-between; align-items: center;">
+                <div><h1 style="font-size: 28px; font-weight: 900; margin: 0;">RZ <span style="color: #00e5ff;">SYSTEMS</span></h1></div>
+                <div style="text-align: right;"><p id="pdf-num" style="margin: 0; font-size: 22px; font-weight: 900;">---</p></div>
+            </div>
+            <div style="padding: 30px; background: white;">
+                <p id="pdf-cliente" style="font-size: 16px; font-weight: bold; margin: 0;">---</p>
+                <table id="pdf-tabla" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <thead style="background: #f8fafc; font-size: 10px;"><tr><th style="padding: 10px; text-align: left;">DESC</th><th style="padding: 10px; text-align: center;">CANT</th><th style="padding: 10px; text-align: right;">TOTAL</th></tr></thead>
+                    <tbody id="pdf-tabla-body"></tbody>
+                </table>
+                <div id="pdf-bloque-totales" style="margin-top: 20px; text-align: right;"></div>
             </div>
         </div>
     </div>
 
+    <div id="modal-tercero" class="hidden fixed inset-0 bg-black/95 z-[1000] flex items-center justify-center p-4">
+        <div class="card w-full max-w-sm"><h3 class="font-black text-cyan-400 mb-6 uppercase">Registrar Cliente</h3><input type="text" id="m-nom" placeholder="Nombre completo" class="mb-2"><input type="text" id="m-tel" placeholder="Teléfono" class="mb-2"><input type="text" id="m-dir" placeholder="Dirección" class="mb-2"><input type="email" id="m-email" placeholder="Correo" class="mb-6"><div class="flex gap-2"><button onclick="closeModal()" class="flex-grow bg-slate-800 py-3 rounded-xl font-bold">Cerrar</button><button onclick="confirmarRegistro()" class="flex-grow bg-cyan-500 text-black py-3 rounded-xl font-bold">Guardar</button></div></div>
+    </div>
+
     <script>
         const CLOUD_URL = "https://script.google.com/macros/s/AKfycbygm7Q_ZqrreskRhl_MMN0D-FwmvrIczxbPlu_63-W8tzMOoYawz-4guuvhkB6Is8zO/exec";
-        let rz = JSON.parse(localStorage.getItem('rz_cloud_v17_3')) || { clientes: [], docs: [] };
+        let rz = JSON.parse(localStorage.getItem('rz_v17_4')) || { clientes: [], docs: [], pin: null };
         let items = [{ desc: '', cant: 1, unit: 0 }];
 
-        function checkPin() {
-            if(document.getElementById('pin-input').value === '1234') {
-                document.getElementById('lock-screen').style.display = 'none';
-                document.getElementById('main-app').classList.remove('opacity-0');
-                render();
+        // Lógica de PIN personalizada
+        window.onload = () => {
+            const msg = document.getElementById('lock-msg');
+            if(!rz.pin) {
+                msg.innerText = "Crea tu PIN de 4 dígitos";
+                document.getElementById('btn-lock').innerText = "DEFINIR PIN";
             } else {
-                alert("PIN INCORRECTO");
-                document.getElementById('pin-input').value = '';
+                msg.innerText = "Ingresa tu PIN de acceso";
+            }
+        };
+
+        function handleLock() {
+            const input = document.getElementById('pin-input').value;
+            if(!rz.pin) {
+                if(input.length === 4) {
+                    rz.pin = input;
+                    save();
+                    alert("PIN creado con éxito");
+                    unlock();
+                } else { alert("El PIN debe ser de 4 dígitos"); }
+            } else {
+                if(input === rz.pin) { unlock(); } else { alert("PIN Incorrecto"); document.getElementById('pin-input').value = ''; }
             }
         }
 
-        function render() {
-            localStorage.setItem('rz_cloud_v17_3', JSON.stringify(rz));
-            document.getElementById('doc-tercero-select').innerHTML = rz.clientes.map(c => `<option value="${c.nom}">${c.nom}</option>`).join('') || '<option>Registra un cliente primero</option>';
-            document.getElementById('lista-clientes').innerHTML = rz.clientes.map(c => `
-                <div class="card flex justify-between items-center">
-                    <div><p class="font-bold text-cyan-400">${c.nom}</p><small class="text-slate-500">${c.tel} | ${c.dir}</small></div>
-                </div>`).join('');
-            let totalGeneral = rz.docs.reduce((acc, d) => acc + d.total, 0);
-            document.getElementById('dash-saldo').innerText = '$ ' + totalGeneral.toLocaleString();
-            document.getElementById('tabla-historial').innerHTML = rz.docs.map(d => `
-                <div class="card flex justify-between items-center">
-                    <span>${d.num} - ${d.tercero}</span><b>$ ${d.total.toLocaleString()}</b>
-                </div>`).join('');
+        function unlock() {
+            document.getElementById('lock-screen').style.display = 'none';
+            document.getElementById('main-app').classList.remove('opacity-0');
+            render(); renderItems();
         }
 
-        async function pushData() {
-            try { await fetch(CLOUD_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rz) }); } catch (e) {}
+        function logout() { location.reload(); }
+
+        // SINCRONIZACIÓN VISUAL
+        async function syncCloud() {
+            const icon = document.getElementById('sync-icon');
+            icon.classList.add('sync-active');
+            try {
+                await fetch(CLOUD_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rz) });
+                setTimeout(() => icon.classList.remove('sync-active'), 2000);
+            } catch (e) { icon.classList.remove('sync-active'); }
+        }
+
+        function save() { localStorage.setItem('rz_v17_4', JSON.stringify(rz)); }
+
+        function render() {
+            save();
+            document.getElementById('doc-tercero-select').innerHTML = rz.clientes.map(c => `<option value="${c.nom}">${c.nom}</option>`).join('') || '<option>Sin clientes</option>';
+            document.getElementById('lista-clientes').innerHTML = rz.clientes.map(c => `<div class="card flex justify-between"><div><p class="font-bold text-cyan-400">${c.nom}</p><small>${c.tel}</small></div></div>`).join('');
+            let total = rz.docs.reduce((acc, d) => acc + d.total, 0);
+            document.getElementById('dash-saldo').innerText = '$ ' + total.toLocaleString();
+            document.getElementById('tabla-historial').innerHTML = rz.docs.map(d => `<div class="card flex justify-between"><span>${d.num} - ${d.tercero}</span><b>$ ${d.total.toLocaleString()}</b></div>`).join('');
         }
 
         function renderItems() {
             document.getElementById('items-container').innerHTML = items.map((item, index) => `
                 <div class="flex gap-2">
-                    <input type="text" value="${item.desc}" oninput="updateItem(${index}, 'desc', this.value)" placeholder="Descripción" class="flex-grow">
+                    <input type="text" value="${item.desc}" oninput="updateItem(${index}, 'desc', this.value)" placeholder="Servicio" class="flex-grow">
                     <input type="number" value="${item.cant}" oninput="updateItem(${index}, 'cant', this.value)" class="w-16 text-center">
                     <input type="number" value="${item.unit}" oninput="updateItem(${index}, 'unit', this.value)" placeholder="$ 0" class="w-28 text-right">
                     <button onclick="removeItem(${index})" class="text-rose-500 px-2"><i class="fas fa-trash"></i></button>
@@ -199,46 +194,27 @@
         function updateItem(index, key, val) { items[index][key] = (key === 'desc') ? val : parseFloat(val) || 0; recalc(); }
 
         function recalc() {
-            let subtotal = items.reduce((acc, item) => acc + (item.cant * item.unit), 0);
-            let iva = document.getElementById('check-iva').checked ? (subtotal * 0.19) : 0;
+            let sub = items.reduce((acc, item) => acc + (item.cant * item.unit), 0);
+            let iva = document.getElementById('check-iva').checked ? (sub * 0.19) : 0;
             let domi = parseFloat(document.getElementById('val-domicilio').value) || 0;
-            let totalFinal = subtotal + iva + domi;
-            document.getElementById('val-total').innerText = 'TOTAL: $ ' + totalFinal.toLocaleString();
-            return { subtotal, iva, domi, total: totalFinal };
-        }
-
-        function generarPDF() {
-            const cliente = rz.clientes.find(c => c.nom === document.getElementById('doc-tercero-select').value);
-            const vals = recalc();
-            document.getElementById('pdf-titulo-doc').innerText = document.getElementById('doc-tipo').value;
-            document.getElementById('pdf-num').innerText = document.getElementById('doc-num').value || "S/N";
-            document.getElementById('pdf-cliente').innerText = cliente.nom;
-            document.getElementById('pdf-dir-correo').innerText = `${cliente.dir} | ${cliente.tel}`;
-            document.getElementById('pdf-fecha').innerText = "FECHA: " + new Date().toLocaleDateString();
-            document.getElementById('pdf-tabla-body').innerHTML = items.map(i => `
-                <tr style="border-bottom: 1px solid #eee; font-size: 12px;"><td style="padding: 12px;">${i.desc || 'Servicio'}</td><td style="padding: 12px; text-align: center;">${i.cant}</td><td style="padding: 12px; text-align: right;">$ ${i.unit.toLocaleString()}</td><td style="padding: 12px; text-align: right;">$ ${(i.cant * i.unit).toLocaleString()}</td></tr>`).join('');
-            let htmlTotales = `<div style="display:flex; justify-content:space-between; font-size: 12px; color: #666;"><span>Subtotal:</span><span>$ ${vals.subtotal.toLocaleString()}</span></div>`;
-            if(vals.iva > 0) htmlTotales += `<div style="display:flex; justify-content:space-between; font-size: 12px; color: #666;"><span>IVA (19%):</span><span>$ ${vals.iva.toLocaleString()}</span></div>`;
-            if(vals.domi > 0) htmlTotales += `<div style="display:flex; justify-content:space-between; font-size: 12px; color: #666;"><span>Domicilio:</span><span>$ ${vals.domi.toLocaleString()}</span></div>`;
-            htmlTotales += `<div style="display:flex; justify-content:space-between; font-size: 18px; font-weight: 900; margin-top: 10px; color: #0284c7; border-top: 2px solid #000; padding-top: 10px;"><span>TOTAL NETO:</span><span>$ ${vals.total.toLocaleString()}</span></div>`;
-            document.getElementById('pdf-bloque-totales').innerHTML = htmlTotales;
-            const element = document.getElementById('factura-documento');
-            html2pdf().set({ margin: 0, filename: `RZ_${document.getElementById('doc-num').value}.pdf`, html2canvas: { scale: 3 }, jsPDF: { unit: 'mm', format: 'a4' } }).from(element).save();
+            let total = sub + iva + domi;
+            document.getElementById('val-total').innerText = 'TOTAL: $ ' + total.toLocaleString();
+            return { sub, iva, domi, total };
         }
 
         function guardarDoc() {
             const v = recalc(); 
             const num = document.getElementById('doc-num').value;
-            if(!num) return alert("Falta el No. de Factura");
+            if(!num) return alert("Falta No. Factura");
             rz.docs.unshift({ id: Date.now(), num: num, tercero: document.getElementById('doc-tercero-select').value, total: v.total });
-            render(); pushData();
+            render(); 
+            syncCloud(); // Dispara la nube visualmente
             document.getElementById('btn-pdf-quick').classList.remove('hidden');
-            alert("Sincronizado con RZ Cloud");
         }
 
         function confirmarRegistro() {
-            rz.clientes.push({ id: Date.now(), nom: document.getElementById('m-nom').value, tel: document.getElementById('m-tel').value, dir: document.getElementById('m-dir').value, email: document.getElementById('m-email').value });
-            render(); pushData(); closeModal();
+            rz.clientes.push({ id: Date.now(), nom: document.getElementById('m-nom').value, tel: document.getElementById('m-tel').value, dir: document.getElementById('m-dir').value });
+            render(); syncCloud(); closeModal();
         }
 
         function showSection(id, el) {
@@ -249,8 +225,18 @@
         }
         function openModal() { document.getElementById('modal-tercero').classList.remove('hidden'); }
         function closeModal() { document.getElementById('modal-tercero').classList.add('hidden'); }
-        
-        renderItems();
+
+        // PDF Lógica básica
+        function generarPDF() {
+            const cliente = rz.clientes.find(c => c.nom === document.getElementById('doc-tercero-select').value);
+            const vals = recalc();
+            document.getElementById('pdf-num').innerText = document.getElementById('doc-num').value;
+            document.getElementById('pdf-cliente').innerText = cliente.nom;
+            document.getElementById('pdf-tabla-body').innerHTML = items.map(i => `<tr><td>${i.desc}</td><td style="text-align:center">${i.cant}</td><td style="text-align:right">$ ${(i.cant*i.unit).toLocaleString()}</td></tr>`).join('');
+            document.getElementById('pdf-bloque-totales').innerHTML = `<b>TOTAL: $ ${vals.total.toLocaleString()}</b>`;
+            const element = document.getElementById('factura-documento');
+            html2pdf().set({ margin: 0, filename: `RZ_${document.getElementById('doc-num').value}.pdf`, jsPDF: { unit: 'mm', format: 'a4' } }).from(element).save();
+        }
     </script>
 </body>
 </html>
