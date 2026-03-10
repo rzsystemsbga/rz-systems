@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RZ Systems | Cloud ERP v13</title>
+    <title>RZ Systems | Secure Cloud</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/10061/10061730.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -18,16 +18,29 @@
         input, select, textarea { background: #1e293b !important; border: 1px solid #334155 !important; color: white !important; border-radius: 10px; padding: 12px; outline: none; width: 100%; }
         .card { background: #111827; border: 1px solid #1f2937; border-radius: 24px; padding: 24px; }
         #sync-loader { position: fixed; top: 20px; right: 20px; font-size: 10px; background: #000; padding: 5px 10px; border-radius: 20px; border: 1px solid var(--rz-cyan); display: none; z-index: 100; }
+        /* Pantalla de Bloqueo */
+        #lock-screen { position: fixed; inset: 0; background: #0b1120; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
+    <div id="lock-screen">
+        <div class="text-center">
+            <h1 class="text-4xl font-black italic mb-2 tracking-tighter text-white">RZ <span class="text-cyan-400">SYSTEMS</span></h1>
+            <p id="lock-msg" class="text-slate-400 text-sm mb-8 font-bold uppercase tracking-widest">Seguridad Requerida</p>
+            <div class="flex gap-4 mb-6 justify-center">
+                <input type="password" id="pin-input" maxlength="4" placeholder="••••" class="text-center text-3xl tracking-[15px] w-48 border-cyan-500 font-black">
+            </div>
+            <button onclick="checkPin()" class="bg-cyan-500 text-slate-900 px-10 py-3 rounded-2xl font-black hover:bg-cyan-400 transition-all">ACCEDER AL SISTEMA</button>
+        </div>
+    </div>
+
     <div id="sync-loader" class="text-cyan-400 font-bold uppercase tracking-widest"><i class="fas fa-sync fa-spin mr-2"></i> Sincronizando...</div>
 
-    <div class="flex h-screen">
+    <div id="main-app" class="flex h-screen opacity-0 transition-opacity duration-500">
         <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col p-6">
             <div class="mb-10 text-center uppercase">
-                <h1 class="text-xl font-black italic tracking-tighter">RZ <span class="text-cyan-400">Systems</span></h1>
+                <h1 class="text-xl font-black italic tracking-tighter">RZ <span class="text-cyan-400 text-[10px]">Cloud</span></h1>
             </div>
             <nav class="flex-grow space-y-1 text-sm">
                 <div onclick="showSection('dashboard', this)" class="sidebar-link active-link p-4 flex items-center gap-4"><i class="fas fa-chart-line"></i> Dashboard</div>
@@ -36,71 +49,99 @@
                 <div onclick="showSection('facturador', this)" class="sidebar-link p-4 flex items-center gap-4"><i class="fas fa-plus-circle"></i> Nueva Operación</div>
                 <div onclick="showSection('historial', this)" id="link-historial" class="sidebar-link p-4 flex items-center gap-4"><i class="fas fa-history"></i> Historial</div>
             </nav>
-            <div class="mt-auto border-t border-slate-800 pt-4 text-center">
-                <button onclick="pullData()" class="text-[10px] text-cyan-400 font-bold uppercase hover:text-white transition-all"><i class="fas fa-cloud-download-alt mr-2"></i> Forzar Descarga</button>
+            <div class="mt-auto border-t border-slate-800 pt-4 flex flex-col gap-2">
+                <button onclick="pullData()" class="text-[9px] text-cyan-400 font-bold uppercase"><i class="fas fa-cloud-download-alt mr-2"></i> Recargar Nube</button>
+                <button onclick="logout()" class="text-[9px] text-rose-500 font-bold uppercase"><i class="fas fa-lock mr-2"></i> Salir y Bloquear</button>
             </div>
         </aside>
 
         <main class="flex-grow p-10 bg-slate-950 overflow-hidden relative">
             <div id="dashboard" class="section-content active-section">
-                <h2 class="text-3xl font-bold mb-8 italic text-white">Cloud Control</h2>
+                <h2 class="text-3xl font-bold mb-8 italic">Balance General</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="card border-l-4 border-emerald-500"><p class="text-slate-400 text-[10px] uppercase font-bold">Ventas</p><h3 id="dash-ingresos" class="text-2xl font-black text-emerald-400">$ 0</h3></div>
-                    <div class="card border-l-4 border-rose-500"><p class="text-slate-400 text-[10px] uppercase font-bold">Gastos</p><h3 id="dash-egresos" class="text-2xl font-black text-rose-500">$ 0</h3></div>
-                    <div class="card border-l-4 border-cyan-500"><p class="text-slate-400 text-[10px] uppercase font-bold">Saldo</p><h3 id="dash-saldo" class="text-3xl font-black">$ 0</h3></div>
+                    <div class="card border-l-4 border-emerald-500"><p class="text-slate-400 text-[10px] uppercase font-bold">Ingresos</p><h3 id="dash-ingresos" class="text-2xl font-black text-emerald-400">$ 0</h3></div>
+                    <div class="card border-l-4 border-rose-500"><p class="text-slate-400 text-[10px] uppercase font-bold">Egresos</p><h3 id="dash-egresos" class="text-2xl font-black text-rose-500">$ 0</h3></div>
+                    <div class="card border-l-4 border-cyan-500"><p class="text-slate-400 text-[10px] uppercase font-bold">Saldo Neto</p><h3 id="dash-saldo" class="text-3xl font-black">$ 0</h3></div>
                 </div>
             </div>
 
             <div id="clientes" class="section-content">
-                <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold">Mis Clientes</h2><button onclick="openModal('clientes')" class="bg-cyan-500 text-slate-900 px-6 py-2 rounded-xl font-bold hover:scale-105">+ Nuevo Cliente</button></div>
+                <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold">Clientes</h2><button onclick="openModal('clientes')" class="bg-cyan-500 text-slate-900 px-6 py-2 rounded-xl font-bold">+ Nuevo Cliente</button></div>
                 <div class="card p-0 overflow-hidden"><table class="w-full text-left text-sm"><tbody id="lista-clientes" class="divide-y divide-slate-800"></tbody></table></div>
             </div>
 
             <div id="proveedores" class="section-content">
-                <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-amber-500">Proveedores</h2><button onclick="openModal('proveedores')" class="bg-amber-500 text-slate-900 px-6 py-2 rounded-xl font-bold hover:scale-105">+ Nuevo Proveedor</button></div>
+                <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-amber-500">Proveedores</h2><button onclick="openModal('proveedores')" class="bg-amber-500 text-slate-900 px-6 py-2 rounded-xl font-bold">+ Nuevo Proveedor</button></div>
                 <div class="card p-0 overflow-hidden border-amber-500/10"><table class="w-full text-left text-sm"><tbody id="lista-proveedores" class="divide-y divide-slate-800"></tbody></table></div>
             </div>
 
             <div id="facturador" class="section-content">
-                <h2 class="text-2xl font-bold mb-6 italic">Registrar Movimiento</h2>
-                <div class="card max-w-4xl mx-auto border-t-8 border-cyan-500 shadow-2xl">
+                <h2 class="text-2xl font-bold mb-6 italic">Registrar</h2>
+                <div class="card max-w-4xl mx-auto border-t-8 border-cyan-500">
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <select id="doc-tipo"><option value="FACTURA">FACTURA (Venta)</option><option value="GASTO">GASTO (Compra)</option></select>
                         <input type="text" id="doc-num" class="font-bold text-cyan-400">
                     </div>
                     <div class="mb-4"><select id="doc-tercero-select"></select></div>
-                    <div class="mb-4"><textarea id="doc-descripcion" placeholder="Detalles del equipo o servicio..."></textarea></div>
+                    <div class="mb-4"><textarea id="doc-descripcion" placeholder="Descripción..."></textarea></div>
                     <div class="grid grid-cols-3 gap-6 mb-6">
                         <input type="number" id="val-bruto" oninput="recalc()" placeholder="Monto $">
-                        <input type="number" id="val-desc" oninput="recalc()" placeholder="Descuento -">
-                        <div id="val-total" class="p-3 bg-slate-800 rounded-lg text-xl font-black text-cyan-400 border border-cyan-500/30 text-center">$ 0</div>
+                        <input type="number" id="val-desc" oninput="recalc()" placeholder="Desc -">
+                        <div id="val-total" class="p-3 bg-slate-800 rounded-lg text-xl font-black text-cyan-400 border border-cyan-500/30">$ 0</div>
                     </div>
-                    <button onclick="guardarDoc()" class="w-full bg-cyan-500 text-slate-900 font-black py-4 rounded-2xl hover:bg-cyan-400 transition-all">REGISTRAR Y SINCRONIZAR</button>
+                    <button onclick="guardarDoc()" class="w-full bg-cyan-500 text-slate-900 font-black py-4 rounded-2xl">REGISTRAR Y SINCRONIZAR</button>
                 </div>
             </div>
 
             <div id="historial" class="section-content">
-                <div class="flex justify-between items-center mb-6"><h2 id="historial-titulo" class="text-2xl font-bold">Libro Diario</h2><button id="btn-reset-filtro" onclick="render()" class="hidden text-xs bg-slate-800 px-4 py-2 rounded-lg text-cyan-400">Ver Todo</button></div>
-                <div class="card p-0 overflow-hidden"><table class="w-full text-left text-xs"><thead class="bg-slate-800 text-slate-500 uppercase"><tr><th class="p-4">Doc</th><th class="p-4">Tercero</th><th class="p-4">Descripción</th><th class="p-4">Tipo</th><th class="p-4 text-right">Valor</th></tr></thead><tbody id="tabla-historial" class="divide-y divide-slate-800"></tbody></table></div>
+                <div class="flex justify-between items-center mb-6"><h2 id="historial-titulo" class="text-2xl font-bold">Historial</h2><button id="btn-reset-filtro" onclick="render()" class="hidden text-xs bg-slate-800 px-4 py-2 rounded-lg text-cyan-400">Ver Todo</button></div>
+                <div class="card p-0 overflow-hidden"><table class="w-full text-left text-xs"><tbody id="tabla-historial" class="divide-y divide-slate-800"></tbody></table></div>
             </div>
         </main>
     </div>
 
     <div id="modal-tercero" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="card w-full max-w-sm border-cyan-500/30"><h3 id="modal-title" class="text-xl font-black mb-6 text-cyan-400">Nuevo Registro</h3><div class="space-y-4"><input type="text" id="m-nom" placeholder="Nombre completo"><input type="text" id="m-id" placeholder="Cédula / NIT"><input type="text" id="m-tel" placeholder="Teléfono de contacto"></div><div class="flex gap-3 mt-8"><button onclick="closeModal()" class="flex-grow bg-slate-800 py-3 rounded-xl font-bold">Cerrar</button><button onclick="confirmarRegistro()" class="flex-grow bg-cyan-500 text-slate-900 font-bold rounded-xl">Guardar</button></div></div>
+        <div class="card w-full max-w-sm"><h3 class="text-xl font-black mb-6 text-cyan-400">Registro</h3><div class="space-y-4"><input type="text" id="m-nom" placeholder="Nombre"><input type="text" id="m-id" placeholder="ID/NIT"><input type="text" id="m-tel" placeholder="Teléfono"></div><div class="flex gap-3 mt-8"><button onclick="closeModal()" class="flex-grow bg-slate-800 py-3 rounded-xl font-bold">Cerrar</button><button onclick="confirmarRegistro()" class="flex-grow bg-cyan-500 text-slate-900 font-bold rounded-xl">Guardar</button></div></div>
     </div>
 
     <script>
         const CLOUD_URL = "https://script.google.com/macros/s/AKfycbygm7Q_ZqrreskRhl_MMN0D-FwmvrIczxbPlu_63-W8tzMOoYawz-4guuvhkB6Is8zO/exec";
-        let rz = JSON.parse(localStorage.getItem('rz_cloud_v13')) || { clientes: [], proveedores: [], docs: [] };
+        let rz = JSON.parse(localStorage.getItem('rz_cloud_v14')) || { clientes: [], proveedores: [], docs: [] };
         let activeCat = '';
 
+        // --- SISTEMA DE PIN ---
+        let pinCorrecto = localStorage.getItem('rz_pin');
+        if(!pinCorrecto) {
+            document.getElementById('lock-msg').innerText = "BIENVENIDO. CREA UN PIN DE 4 DÍGITOS:";
+        }
+
+        function checkPin() {
+            const input = document.getElementById('pin-input').value;
+            if(!pinCorrecto) {
+                if(input.length === 4) {
+                    localStorage.setItem('rz_pin', input);
+                    pinCorrecto = input;
+                    alert("PIN Creado con éxito. No lo olvides.");
+                    unlock();
+                } else { alert("El PIN debe tener 4 números."); }
+            } else {
+                if(input === pinCorrecto) { unlock(); } 
+                else { alert("PIN INCORRECTO"); document.getElementById('pin-input').value = ''; }
+            }
+        }
+
+        function unlock() {
+            document.getElementById('lock-screen').style.display = 'none';
+            document.getElementById('main-app').classList.remove('opacity-0');
+            pullData(); // Sincroniza al entrar
+        }
+
+        function logout() { location.reload(); }
+
+        // --- NUBE ---
         async function pushData() {
             document.getElementById('sync-loader').style.display = 'block';
-            try {
-                await fetch(CLOUD_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rz) });
-                console.log("Push OK");
-            } catch (e) { console.error(e); }
+            try { await fetch(CLOUD_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rz) }); } catch (e) {}
             setTimeout(() => { document.getElementById('sync-loader').style.display = 'none'; }, 2000);
         }
 
@@ -109,22 +150,14 @@
             try {
                 const response = await fetch(CLOUD_URL);
                 const cloudData = await response.json();
-                if (cloudData && cloudData.docs) {
-                    rz = cloudData;
-                    localStorage.setItem('rz_cloud_v13', JSON.stringify(rz));
-                    render();
-                }
-            } catch (e) { console.log("No hay datos en la nube aún."); }
+                if (cloudData && cloudData.docs) { rz = cloudData; localStorage.setItem('rz_cloud_v14', JSON.stringify(rz)); render(); }
+            } catch (e) {}
             document.getElementById('sync-loader').style.display = 'none';
         }
 
-        function save() {
-            localStorage.setItem('rz_cloud_v13', JSON.stringify(rz));
-            render();
-            pushData(); // Sincroniza al guardar
-        }
+        function save() { localStorage.setItem('rz_cloud_v14', JSON.stringify(rz)); render(); pushData(); }
 
-        // --- Lógica del Programa ---
+        // --- PROGRAMA ---
         function showSection(id, el) {
             document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active-section'));
             document.getElementById(id).classList.add('active-section');
@@ -144,46 +177,40 @@
             document.querySelectorAll('#modal-tercero input').forEach(i => i.value = '');
         }
 
-        function verFacturasDe(nombre) { render(nombre); showSection('historial', document.getElementById('link-historial')); document.getElementById('historial-titulo').innerText = "Viendo: " + nombre; document.getElementById('btn-reset-filtro').classList.remove('hidden'); }
+        function verFacturasDe(nombre) { render(nombre); showSection('historial', document.getElementById('link-historial')); document.getElementById('historial-titulo').innerText = "Ver: " + nombre; document.getElementById('btn-reset-filtro').classList.remove('hidden'); }
 
         function recalc() {
-            const b = parseFloat(document.getElementById('val-bruto').value) || 0;
-            const d = parseFloat(document.getElementById('val-desc').value) || 0;
-            const t = b - d;
+            const t = (parseFloat(document.getElementById('val-bruto').value) || 0) - (parseFloat(document.getElementById('val-desc').value) || 0);
             document.getElementById('val-total').innerText = '$ ' + t.toLocaleString();
             return t;
         }
 
         function guardarDoc() {
-            const neto = recalc();
-            const tercero = document.getElementById('doc-tercero-select').value;
-            if(!tercero || neto <= 0) return alert("Faltan datos");
-            rz.docs.unshift({ id: Date.now(), num: document.getElementById('doc-num').value, tercero, tipo: document.getElementById('doc-tipo').value, monto: neto, desc: document.getElementById('doc-descripcion').value });
-            save(); alert("¡Registrado y sincronizado en la nube!");
+            const neto = recalc(); const tero = document.getElementById('doc-tercero-select').value;
+            if(!tero || neto <= 0) return alert("Faltan datos");
+            rz.docs.unshift({ id: Date.now(), num: document.getElementById('doc-num').value, tercero: tero, tipo: document.getElementById('doc-tipo').value, monto: neto, desc: document.getElementById('doc-descripcion').value });
+            save(); alert("¡Guardado en la Nube!");
             document.getElementById('val-bruto').value = ''; document.getElementById('val-desc').value = ''; document.getElementById('doc-descripcion').value = ''; recalc();
         }
 
         function eliminarTercero(id, cat) { if(confirm('¿Eliminar?')) { rz[cat] = rz[cat].filter(i => i.id !== id); save(); } }
 
         function render(filtroNombre = null) {
-            if(!filtroNombre) { document.getElementById('historial-titulo').innerText = "Libro Diario"; document.getElementById('btn-reset-filtro').classList.add('hidden'); }
-            const rowT = (t, cat, col) => `<tr class="hover:bg-slate-800/40"><td class="p-4"><p class="font-bold ${col}">${t.nom}</p><p class="text-[10px] text-slate-500">${t.ident || ''}</p></td><td class="p-4">${t.tel}</td><td class="p-4 text-right flex gap-3 justify-end items-center"><button onclick="verFacturasDe('${t.nom}')" class="text-[9px] bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg">Detalle</button><button onclick="eliminarTercero(${t.id}, '${cat}')" class="text-rose-500"><i class="fas fa-trash"></i></button></td></tr>`;
+            if(!filtroNombre) { document.getElementById('historial-titulo').innerText = "Historial"; document.getElementById('btn-reset-filtro').classList.add('hidden'); }
+            const rowT = (t, cat, col) => `<tr class="hover:bg-slate-800/40"><td class="p-4"><p class="font-bold ${col}">${t.nom}</p><p class="text-[10px] text-slate-500">${t.ident || ''}</p></td><td class="p-4 text-slate-400">${t.tel}</td><td class="p-4 text-right flex gap-3 justify-end items-center"><button onclick="verFacturasDe('${t.nom}')" class="text-[9px] bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg">Detalles</button><button onclick="eliminarTercero(${t.id}, '${cat}')" class="text-rose-500/50 hover:text-rose-500"><i class="fas fa-trash"></i></button></td></tr>`;
             document.getElementById('lista-clientes').innerHTML = rz.clientes.map(c => rowT(c, 'clientes', 'text-cyan-400')).join('');
             document.getElementById('lista-proveedores').innerHTML = rz.proveedores.map(p => rowT(p, 'proveedores', 'text-amber-500')).join('');
             document.getElementById('doc-tercero-select').innerHTML = '<optgroup label="CLIENTES">' + rz.clientes.map(c => `<option value="${c.nom}">${c.nom}</option>`).join('') + '</optgroup>' + '<optgroup label="PROVEEDORES">' + rz.proveedores.map(p => `<option value="${p.nom}">${p.nom}</option>`).join('') + '</optgroup>';
             const filtrados = filtroNombre ? rz.docs.filter(d => d.tercero === filtroNombre) : rz.docs;
             document.getElementById('tabla-historial').innerHTML = filtrados.map(d => {
                 let col = d.tipo === 'FACTURA' ? 'text-emerald-400' : 'text-rose-500';
-                return `<tr><td class="p-4 font-black text-white">${d.num}</td><td class="p-4 font-bold text-slate-300">${d.tercero}</td><td class="p-4 text-slate-500 italic max-w-xs truncate">${d.desc || 'Sin detalle'}</td><td class="p-4 text-[10px] font-black ${col}">${d.tipo}</td><td class="p-4 text-right font-black ${col}">$ ${d.monto.toLocaleString()}</td></tr>`;
+                return `<tr><td class="p-4 font-black text-white">${d.num}</td><td class="p-4 font-bold text-slate-300">${d.tercero}</td><td class="p-4 text-slate-500 italic truncate max-w-xs">${d.desc || '-'}</td><td class="p-4 text-[10px] font-black ${col}">${d.tipo}</td><td class="p-4 text-right font-black ${col}">$ ${d.monto.toLocaleString()}</td></tr>`;
             }).join('');
             let ti=0, te=0; rz.docs.forEach(d => { if(d.tipo==='FACTURA') ti+=d.monto; if(d.tipo==='GASTO') te+=d.monto; });
             document.getElementById('dash-ingresos').innerText = '$ ' + ti.toLocaleString();
             document.getElementById('dash-egresos').innerText = '$ ' + te.toLocaleString();
             document.getElementById('dash-saldo').innerText = '$ ' + (ti - te).toLocaleString();
         }
-
-        // Al abrir el programa, intentamos bajar datos de la nube
-        pullData();
         render();
     </script>
 </body>
