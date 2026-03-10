@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RZ Systems | Cloud Pro v17.0</title>
+    <title>RZ Systems | Cloud Pro v17.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -35,38 +35,30 @@
                     <p id="pdf-num" style="margin: 0; font-size: 22px; font-weight: 900;">---</p>
                 </div>
             </div>
-
             <div style="padding: 30px; color: black !important; background: white;">
                 <div style="margin-bottom: 25px; display: flex; justify-content: space-between;">
                     <div>
-                        <p style="font-size: 9px; color: #666; margin: 0;">CLIENTE:</p>
+                        <p style="font-size: 9px; color: #666; margin: 0; font-weight: bold;">CLIENTE:</p>
                         <p id="pdf-cliente" style="font-size: 16px; font-weight: bold; margin: 0;">---</p>
                         <p id="pdf-dir-correo" style="font-size: 10px; margin: 0;">---</p>
                     </div>
-                    <div style="text-align: right;">
-                        <p id="pdf-fecha" style="font-size: 11px; font-weight: bold;">---</p>
-                    </div>
+                    <div style="text-align: right;"><p id="pdf-fecha" style="font-size: 11px; font-weight: bold;">---</p></div>
                 </div>
-
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                     <thead>
-                        <tr style="background: #f4f4f4; font-size: 10px; border-bottom: 2px solid #0b1120;">
-                            <th style="padding: 10px; text-align: left;">DESCRIPCIÓN</th>
-                            <th style="padding: 10px; text-align: center;">CANT</th>
-                            <th style="padding: 10px; text-align: right;">V. UNIT</th>
-                            <th style="padding: 10px; text-align: right;">TOTAL</th>
+                        <tr style="background: #f8fafc; font-size: 10px; border-bottom: 2px solid #0b1120;">
+                            <th style="padding: 12px; text-align: left;">DESCRIPCIÓN</th>
+                            <th style="padding: 12px; text-align: center;">CANT</th>
+                            <th style="padding: 12px; text-align: right;">V. UNIT</th>
+                            <th style="padding: 12px; text-align: right;">TOTAL</th>
                         </tr>
                     </thead>
-                    <tbody id="pdf-tabla-body">
-                        </tbody>
+                    <tbody id="pdf-tabla-body"></tbody>
                 </table>
-
                 <div style="display: flex; justify-content: flex-end;">
-                    <div id="pdf-bloque-totales" style="width: 250px; border-top: 2px solid #eee; padding-top: 10px;">
-                        </div>
+                    <div id="pdf-bloque-totales" style="width: 280px; border-top: 2px solid #eee; padding-top: 15px;"></div>
                 </div>
-
-                <div style="margin-top: 40px; padding: 10px; border: 1px dashed #ccc; text-align: center; font-size: 9px; color: #666;">
+                <div style="margin-top: 40px; padding: 12px; background: #fffbeb; border: 1px solid #fef3c7; text-align: center; font-size: 9px; color: #92400e; font-weight: bold;">
                     NOTA: Factura de venta interna de RZ SYSTEMS. No constituye factura electrónica (DIAN).
                 </div>
             </div>
@@ -77,7 +69,7 @@
         <aside class="w-64 bg-slate-900 p-6 flex flex-col border-r border-slate-800">
             <h1 class="text-xl font-black italic mb-10 text-white">RZ <span class="text-cyan-400">CLOUD</span></h1>
             <nav class="space-y-2 flex-grow">
-                <div onclick="showSection('dashboard', this)" class="sidebar-link active-link p-3 flex items-center gap-3"><i class="fas fa-home"></i> Inicio</div>
+                <div onclick="showSection('dashboard', this)" class="sidebar-link active-link p-3 flex items-center gap-3"><i class="fas fa-chart-pie"></i> Balance</div>
                 <div onclick="showSection('clientes', this)" class="sidebar-link p-3 flex items-center gap-3"><i class="fas fa-users"></i> Clientes</div>
                 <div onclick="showSection('facturador', this)" class="sidebar-link p-3 flex items-center gap-3"><i class="fas fa-plus-circle"></i> Facturar</div>
                 <div onclick="showSection('historial', this)" class="sidebar-link p-3 flex items-center gap-3"><i class="fas fa-history"></i> Historial</div>
@@ -90,71 +82,81 @@
                 <div class="card max-w-4xl mx-auto border-t-4 border-cyan-500">
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <select id="doc-tipo"><option value="FACTURA">FACTURA</option><option value="COTIZACION">COTIZACIÓN</option></select>
-                        <input type="text" id="doc-num" placeholder="No. Factura">
+                        <input type="text" id="doc-num" placeholder="No. Factura (RZS-000)">
                     </div>
                     <select id="doc-tercero-select" class="mb-6"></select>
-
                     <div class="bg-slate-800/30 p-4 rounded-xl mb-6">
-                        <h3 class="text-xs font-bold text-slate-500 uppercase mb-4">Servicios / Productos</h3>
-                        <div id="items-container" class="space-y-3">
-                            </div>
+                        <div id="items-container" class="space-y-3"></div>
                         <button onclick="addItem()" class="mt-4 text-cyan-400 text-xs font-bold underline">+ AGREGAR LÍNEA</button>
                     </div>
-
                     <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="flex items-center gap-2"><input type="checkbox" id="check-iva" onchange="recalc()" class="w-5 h-5"><span class="text-sm">Aplicar IVA 19%</span></div>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="check-iva" onchange="recalc()" class="w-5 h-5"> <span class="text-sm font-bold">Cobrar IVA 19%</span></label>
                         <input type="number" id="val-domicilio" oninput="recalc()" placeholder="Monto Domicilio $">
                     </div>
-
-                    <div id="val-total" class="bg-cyan-500 text-slate-950 p-6 rounded-2xl text-3xl font-black text-center mb-8">TOTAL: $ 0</div>
-
+                    <div id="val-total" class="bg-cyan-500 text-slate-950 p-6 rounded-2xl text-3xl font-black text-center mb-8 italic">TOTAL: $ 0</div>
                     <div class="flex gap-4">
-                        <button onclick="guardarDoc()" class="flex-grow bg-emerald-600 py-4 rounded-xl font-black">GUARDAR</button>
+                        <button onclick="guardarDoc()" class="flex-grow bg-emerald-600 py-4 rounded-xl font-black">GUARDAR EN LA NUBE</button>
                         <button id="btn-pdf-quick" onclick="generarPDF()" class="hidden flex-grow bg-white text-slate-950 py-4 rounded-xl font-black italic">DESCARGAR PDF</button>
                     </div>
                 </div>
             </div>
 
-            <div id="dashboard" class="section-content"> <h2 class="text-2xl">Balance General</h2> <div id="dash-saldo" class="text-4xl font-black mt-4">$ 0</div> </div>
-            <div id="clientes" class="section-content"> <button onclick="openModal()" class="bg-cyan-500 text-black px-4 py-2 rounded-lg mb-4">Nuevo Cliente</button> <div id="lista-clientes"></div> </div>
-            <div id="historial" class="section-content"> <div id="tabla-historial"></div> </div>
+            <div id="dashboard" class="section-content">
+                <h2 class="text-2xl font-bold mb-6">Balance General</h2>
+                <div class="card border-l-8 border-emerald-500 inline-block p-10"><p class="text-slate-500 uppercase text-xs font-bold">Ingresos Totales</p><h3 id="dash-saldo" class="text-5xl font-black text-white">$ 0</h3></div>
+            </div>
+            <div id="clientes" class="section-content">
+                <div class="flex justify-between mb-6"><h2>Base de Datos</h2><button onclick="openModal()" class="bg-cyan-500 text-black px-6 py-2 rounded-xl font-bold">+ Nuevo Cliente</button></div>
+                <div id="lista-clientes" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+            <div id="historial" class="section-content"><h2 class="text-2xl mb-6">Registro de Ventas</h2><div id="tabla-historial" class="space-y-2"></div></div>
         </main>
     </div>
 
-    <div id="modal-tercero" class="hidden fixed inset-0 bg-black/90 z-[1000] flex items-center justify-center p-4">
+    <div id="modal-tercero" class="hidden fixed inset-0 bg-black/95 z-[1000] flex items-center justify-center p-4">
         <div class="card w-full max-w-sm">
-            <h3 class="font-black text-cyan-400 mb-4 uppercase">Nuevo Cliente</h3>
+            <h3 class="font-black text-cyan-400 mb-6 uppercase">Registrar Cliente</h3>
             <input type="text" id="m-nom" placeholder="Nombre" class="mb-2">
             <input type="text" id="m-tel" placeholder="Teléfono" class="mb-2">
             <input type="text" id="m-dir" placeholder="Dirección" class="mb-2">
-            <input type="email" id="m-email" placeholder="Correo" class="mb-4">
-            <button onclick="confirmarRegistro()" class="w-full bg-cyan-500 text-black py-3 rounded-xl font-bold">GUARDAR</button>
+            <input type="email" id="m-email" placeholder="Correo" class="mb-6">
+            <button onclick="confirmarRegistro()" class="w-full bg-cyan-500 text-black py-3 rounded-xl font-bold">GUARDAR EN NUBE</button>
+            <button onclick="closeModal()" class="w-full mt-2 text-slate-500 font-bold py-2">Cancelar</button>
         </div>
     </div>
 
     <script>
-        let rz = JSON.parse(localStorage.getItem('rz_v17')) || { clientes: [], docs: [] };
+        const CLOUD_URL = "https://script.google.com/macros/s/AKfycbygm7Q_ZqrreskRhl_MMN0D-FwmvrIczxbPlu_63-W8tzMOoYawz-4guuvhkB6Is8zO/exec";
+        let rz = JSON.parse(localStorage.getItem('rz_v17_1')) || { clientes: [], docs: [] };
         let items = [{ desc: '', cant: 1, unit: 0 }];
 
+        function render() {
+            localStorage.setItem('rz_v17_1', JSON.stringify(rz));
+            document.getElementById('doc-tercero-select').innerHTML = rz.clientes.map(c => `<option value="${c.nom}">${c.nom}</option>`).join('');
+            document.getElementById('lista-clientes').innerHTML = rz.clientes.map(c => `<div class="card flex justify-between"><div><b>${c.nom}</b><br><small>${c.tel}</small></div></div>`).join('');
+            let total = rz.docs.reduce((acc, d) => acc + d.total, 0);
+            document.getElementById('dash-saldo').innerText = '$ ' + total.toLocaleString();
+            document.getElementById('tabla-historial').innerHTML = rz.docs.map(d => `<div class="card flex justify-between"><span>${d.num} - ${d.tercero}</span><b>$ ${d.total.toLocaleString()}</b></div>`).join('');
+        }
+
+        async function pushData() {
+            try { await fetch(CLOUD_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rz) }); } catch (e) { console.log("Error sync"); }
+        }
+
         function renderItems() {
-            const container = document.getElementById('items-container');
-            container.innerHTML = items.map((item, index) => `
+            document.getElementById('items-container').innerHTML = items.map((item, index) => `
                 <div class="flex gap-2">
-                    <input type="text" value="${item.desc}" oninput="updateItem(${index}, 'desc', this.value)" placeholder="Descripción (ej: Formateo)" class="flex-grow">
-                    <input type="number" value="${item.cant}" oninput="updateItem(${index}, 'cant', this.value)" placeholder="Cant" class="w-16 text-center">
+                    <input type="text" value="${item.desc}" oninput="updateItem(${index}, 'desc', this.value)" placeholder="Descripción" class="flex-grow">
+                    <input type="number" value="${item.cant}" oninput="updateItem(${index}, 'cant', this.value)" class="w-16 text-center">
                     <input type="number" value="${item.unit}" oninput="updateItem(${index}, 'unit', this.value)" placeholder="Unit $" class="w-28 text-right">
-                    <button onclick="removeItem(${index})" class="text-rose-500 px-2"><i class="fas fa-times"></i></button>
-                </div>
-            `).join('');
+                    <button onclick="removeItem(${index})" class="text-rose-500 px-2"><i class="fas fa-trash"></i></button>
+                </div>`).join('');
             recalc();
         }
 
         function addItem() { items.push({ desc: '', cant: 1, unit: 0 }); renderItems(); }
         function removeItem(index) { if(items.length > 1) { items.splice(index, 1); renderItems(); } }
-        function updateItem(index, key, val) { 
-            items[index][key] = (key === 'desc') ? val : parseFloat(val) || 0; 
-            recalc(); 
-        }
+        function updateItem(index, key, val) { items[index][key] = (key === 'desc') ? val : parseFloat(val) || 0; recalc(); }
 
         function recalc() {
             let subtotal = items.reduce((acc, item) => acc + (item.cant * item.unit), 0);
@@ -168,56 +170,45 @@
         function generarPDF() {
             const cliente = rz.clientes.find(c => c.nom === document.getElementById('doc-tercero-select').value);
             const vals = recalc();
-
             document.getElementById('pdf-num').innerText = document.getElementById('doc-num').value;
             document.getElementById('pdf-cliente').innerText = cliente.nom;
             document.getElementById('pdf-dir-correo').innerText = `${cliente.dir} | ${cliente.tel}`;
             document.getElementById('pdf-fecha').innerText = new Date().toLocaleDateString();
-
-            // Llenar tabla del PDF
             document.getElementById('pdf-tabla-body').innerHTML = items.map(i => `
-                <tr style="border-bottom: 1px solid #eee; font-size: 12px;">
-                    <td style="padding: 10px;">${i.desc}</td>
-                    <td style="padding: 10px; text-align: center;">${i.cant}</td>
-                    <td style="padding: 10px; text-align: right;">$ ${i.unit.toLocaleString()}</td>
-                    <td style="padding: 10px; text-align: right;">$ ${(i.cant * i.unit).toLocaleString()}</td>
-                </tr>
-            `).join('');
-
-            // Totales
-            let htmlTotales = `<div>Subtotal: $ ${vals.subtotal.toLocaleString()}</div>`;
-            if(vals.iva > 0) htmlTotales += `<div>IVA (19%): $ ${vals.iva.toLocaleString()}</div>`;
-            if(vals.domi > 0) htmlTotales += `<div>Domicilio: $ ${vals.domi.toLocaleString()}</div>`;
-            htmlTotales += `<div style="font-size: 18px; font-weight: 900; margin-top: 10px; color: #0284c7;">TOTAL: $ ${vals.total.toLocaleString()}</div>`;
+                <tr style="border-bottom: 1px solid #eee; font-size: 12px;"><td style="padding: 12px;">${i.desc}</td><td style="padding: 12px; text-align: center;">${i.cant}</td><td style="padding: 12px; text-align: right;">$ ${i.unit.toLocaleString()}</td><td style="padding: 12px; text-align: right;">$ ${(i.cant * i.unit).toLocaleString()}</td></tr>`).join('');
+            let htmlTotales = `<div style="display:flex; justify-content:space-between"><span>Subtotal:</span><span>$ ${vals.subtotal.toLocaleString()}</span></div>`;
+            if(vals.iva > 0) htmlTotales += `<div style="display:flex; justify-content:space-between"><span>IVA (19%):</span><span>$ ${vals.iva.toLocaleString()}</span></div>`;
+            if(vals.domi > 0) htmlTotales += `<div style="display:flex; justify-content:space-between"><span>Domicilio:</span><span>$ ${vals.domi.toLocaleString()}</span></div>`;
+            htmlTotales += `<div style="display:flex; justify-content:space-between; font-size: 20px; font-weight: 900; margin-top: 10px; color: #0284c7; border-top: 2px solid #000; padding-top: 10px;"><span>TOTAL:</span><span>$ ${vals.total.toLocaleString()}</span></div>`;
             document.getElementById('pdf-bloque-totales').innerHTML = htmlTotales;
-
             const element = document.getElementById('factura-documento');
             html2pdf().set({ margin: 0, filename: `RZ_${document.getElementById('doc-num').value}.pdf`, html2canvas: { scale: 3 }, jsPDF: { unit: 'mm', format: 'a4' } }).from(element).save();
         }
 
         function guardarDoc() {
-            const v = recalc();
-            rz.docs.unshift({ id: Date.now(), num: document.getElementById('doc-num').value, tercero: document.getElementById('doc-tercero-select').value, total: v.total });
-            localStorage.setItem('rz_v17', JSON.stringify(rz));
+            const v = recalc(); const num = document.getElementById('doc-num').value;
+            if(!num) return alert("Falta el No. de Factura");
+            rz.docs.unshift({ id: Date.now(), num: num, tercero: document.getElementById('doc-tercero-select').value, total: v.total });
+            render(); pushData();
             document.getElementById('btn-pdf-quick').classList.remove('hidden');
-            alert("Guardado");
+            alert("Guardado y Sincronizado");
         }
 
         function confirmarRegistro() {
             rz.clientes.push({ id: Date.now(), nom: document.getElementById('m-nom').value, tel: document.getElementById('m-tel').value, dir: document.getElementById('m-dir').value, email: document.getElementById('m-email').value });
-            localStorage.setItem('rz_v17', JSON.stringify(rz));
-            location.reload();
+            render(); pushData(); closeModal();
         }
 
         function showSection(id, el) {
             document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active-section'));
             document.getElementById(id).classList.add('active-section');
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active-link'));
+            if(el) el.classList.add('active-link');
         }
         function openModal() { document.getElementById('modal-tercero').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('modal-tercero').classList.add('hidden'); }
         
-        // Carga inicial
-        document.getElementById('doc-tercero-select').innerHTML = rz.clientes.map(c => `<option value="${c.nom}">${c.nom}</option>`).join('');
-        renderItems();
+        render(); renderItems();
     </script>
 </body>
 </html>
