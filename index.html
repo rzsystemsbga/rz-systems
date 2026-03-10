@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RZ Systems | Cloud Pro v15.7</title>
+    <title>RZ Systems | Cloud Pro v17.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -15,263 +15,209 @@
         .section-content { display: none; height: 100%; overflow-y: auto; padding-bottom: 120px; }
         .active-section { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        input, select, textarea { background: #1e293b !important; border: 1px solid #334155 !important; color: white !important; border-radius: 10px; padding: 12px; outline: none; width: 100%; }
+        input, select, textarea { background: #1e293b !important; border: 1px solid #334155 !important; color: white !important; border-radius: 10px; padding: 10px; outline: none; width: 100%; }
         .card { background: #111827; border: 1px solid #1f2937; border-radius: 24px; padding: 24px; }
-        #sync-loader { position: fixed; top: 20px; right: 20px; font-size: 10px; background: #000; padding: 5px 10px; border-radius: 20px; border: 1px solid var(--rz-cyan); display: none; z-index: 100; }
-        #lock-screen { position: fixed; inset: 0; background: #0b1120; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #factura-documento { width: 800px; background: white !important; color: black !important; position: absolute; left: -9999px; top: 0; }
-        .pdf-text-black { color: #000000 !important; }
+        #pdf-render-zone { position: absolute; bottom: 0; right: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0.1; background: white; }
+        .factura-box { width: 800px; background: white; color: black; padding: 40px; }
     </style>
 </head>
 <body>
 
-    <div id="lock-screen">
-        <div class="text-center">
-            <h1 class="text-4xl font-black italic mb-2 tracking-tighter text-white">RZ <span class="text-cyan-400">SYSTEMS</span></h1>
-            <p class="text-slate-400 text-[10px] mb-8 font-bold uppercase tracking-widest">Security System v15.7</p>
-            <div class="flex gap-4 mb-6 justify-center">
-                <input type="password" id="pin-input" maxlength="4" placeholder="••••" class="text-center text-3xl tracking-[15px] w-48 border-cyan-500 font-black">
+    <div id="pdf-render-zone">
+        <div id="factura-documento" class="factura-box">
+            <div style="background: #0b1120; color: white; padding: 30px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="font-size: 28px; font-weight: 900; margin: 0;">RZ <span style="color: #00e5ff;">SYSTEMS</span></h1>
+                    <p style="font-size: 9px; color: #94a3b8; margin-top: 5px;">📍 Floridablanca | 📱 311 590 7997 | ✉️ rzsystemsbga@gmail.com</p>
+                </div>
+                <div style="text-align: right;">
+                    <p id="pdf-titulo-doc" style="margin: 0; font-size: 10px; font-weight: bold; color: #00e5ff;">FACTURA DE VENTA</p>
+                    <p id="pdf-num" style="margin: 0; font-size: 22px; font-weight: 900;">---</p>
+                </div>
             </div>
-            <button onclick="checkPin()" class="bg-cyan-500 text-slate-900 px-10 py-3 rounded-2xl font-black hover:bg-cyan-400 transition-all">ACCEDER</button>
+
+            <div style="padding: 30px; color: black !important; background: white;">
+                <div style="margin-bottom: 25px; display: flex; justify-content: space-between;">
+                    <div>
+                        <p style="font-size: 9px; color: #666; margin: 0;">CLIENTE:</p>
+                        <p id="pdf-cliente" style="font-size: 16px; font-weight: bold; margin: 0;">---</p>
+                        <p id="pdf-dir-correo" style="font-size: 10px; margin: 0;">---</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p id="pdf-fecha" style="font-size: 11px; font-weight: bold;">---</p>
+                    </div>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background: #f4f4f4; font-size: 10px; border-bottom: 2px solid #0b1120;">
+                            <th style="padding: 10px; text-align: left;">DESCRIPCIÓN</th>
+                            <th style="padding: 10px; text-align: center;">CANT</th>
+                            <th style="padding: 10px; text-align: right;">V. UNIT</th>
+                            <th style="padding: 10px; text-align: right;">TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pdf-tabla-body">
+                        </tbody>
+                </table>
+
+                <div style="display: flex; justify-content: flex-end;">
+                    <div id="pdf-bloque-totales" style="width: 250px; border-top: 2px solid #eee; padding-top: 10px;">
+                        </div>
+                </div>
+
+                <div style="margin-top: 40px; padding: 10px; border: 1px dashed #ccc; text-align: center; font-size: 9px; color: #666;">
+                    NOTA: Factura de venta interna de RZ SYSTEMS. No constituye factura electrónica (DIAN).
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="factura-documento">
-        <div style="background: #0b1120; color: white; padding: 40px; border-bottom: 8px solid #00e5ff; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h1 style="font-size: 32px; font-weight: 900; margin: 0;">RZ <span style="color: #00e5ff;">SYSTEMS</span></h1>
-                <p style="font-size: 10px; font-weight: bold; color: #00e5ff; text-transform: uppercase; margin: 0;">Hardware & Software Solutions</p>
-                <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Piedecuesta, Santander | rz.systems.soporte@gmail.com</p>
-            </div>
-            <div style="text-align: right; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
-                <h2 id="pdf-titulo-doc" style="font-size: 12px; text-transform: uppercase; margin: 0;">DOCUMENTO</h2>
-                <p id="pdf-num" style="font-size: 24px; font-weight: 900; color: #00e5ff; margin: 0;">---</p>
-            </div>
-        </div>
-        <div style="padding: 50px; background: white;">
-            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; margin-bottom: 40px;">
-                <div style="border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                    <h3 style="font-size: 10px; font-weight: 900; color: #0284c7; text-transform: uppercase; margin-bottom: 5px;">Datos del Cliente</h3>
-                    <p id="pdf-cliente" class="pdf-text-black" style="font-size: 16px; font-weight: bold; margin: 0;">---</p>
-                    <p id="pdf-dir-correo" class="pdf-text-black" style="font-size: 11px; color: #444; margin-top: 4px;">---</p>
-                </div>
-                <div style="text-align: right; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                    <h3 style="font-size: 10px; font-weight: 900; color: #0284c7; text-transform: uppercase; margin-bottom: 5px;">Fecha de Emisión</h3>
-                    <p id="pdf-fecha" class="pdf-text-black" style="font-weight: bold; margin: 0;">---</p>
-                </div>
-            </div>
-            <div style="min-height: 200px; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
-                <div style="background: #0f172a; color: #00e5ff; padding: 15px; display: flex; justify-content: space-between; font-size: 10px; font-weight: 900; text-transform: uppercase;">
-                    <span>Detalle del Servicio</span>
-                    <span>Total Neto</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 30px;">
-                    <p id="pdf-desc" class="pdf-text-black" style="font-size: 15px; font-style: italic; margin: 0; max-width: 70%;">---</p>
-                    <p id="pdf-monto" class="pdf-text-black" style="font-size: 26px; font-weight: 900; margin: 0;">---</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="sync-loader" class="text-cyan-400 font-bold uppercase"><i class="fas fa-sync fa-spin mr-2"></i> Cloud Sync...</div>
-
-    <div id="main-app" class="flex h-screen opacity-0 transition-opacity duration-500">
-        <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col p-6">
-            <div class="mb-10 text-center uppercase"><h1 class="text-xl font-black italic tracking-tighter">RZ <span class="text-cyan-400 text-[10px]">Cloud</span></h1></div>
-            <nav class="flex-grow space-y-1 text-sm">
-                <div onclick="showSection('dashboard', this)" class="sidebar-link active-link p-4 flex items-center gap-4"><i class="fas fa-chart-line"></i> Dashboard</div>
-                <div onclick="showSection('clientes', this)" class="sidebar-link p-4 flex items-center gap-4"><i class="fas fa-users"></i> Clientes</div>
-                <div onclick="showSection('facturador', this)" class="sidebar-link p-4 flex items-center gap-4"><i class="fas fa-plus-circle"></i> Nueva Operación</div>
-                <div onclick="showSection('historial', this)" class="sidebar-link p-4 flex items-center gap-4"><i class="fas fa-history"></i> Historial</div>
+    <div id="main-app" class="flex h-screen">
+        <aside class="w-64 bg-slate-900 p-6 flex flex-col border-r border-slate-800">
+            <h1 class="text-xl font-black italic mb-10 text-white">RZ <span class="text-cyan-400">CLOUD</span></h1>
+            <nav class="space-y-2 flex-grow">
+                <div onclick="showSection('dashboard', this)" class="sidebar-link active-link p-3 flex items-center gap-3"><i class="fas fa-home"></i> Inicio</div>
+                <div onclick="showSection('clientes', this)" class="sidebar-link p-3 flex items-center gap-3"><i class="fas fa-users"></i> Clientes</div>
+                <div onclick="showSection('facturador', this)" class="sidebar-link p-3 flex items-center gap-3"><i class="fas fa-plus-circle"></i> Facturar</div>
+                <div onclick="showSection('historial', this)" class="sidebar-link p-3 flex items-center gap-3"><i class="fas fa-history"></i> Historial</div>
             </nav>
-            <button onclick="logout()" class="mt-auto text-[9px] text-rose-500 font-bold uppercase p-4 border border-rose-500/20 rounded-xl hover:bg-rose-500/10 transition-all"><i class="fas fa-power-off mr-2"></i> Bloquear</button>
         </aside>
 
-        <main class="flex-grow p-10 bg-slate-950 overflow-hidden relative">
-            <div id="dashboard" class="section-content active-section">
-                <h2 class="text-3xl font-bold mb-8 italic text-white">Balance General</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="card border-l-4 border-emerald-500"><p class="text-slate-400 text-[10px] font-bold uppercase">Ingresos</p><h3 id="dash-ingresos" class="text-2xl font-black text-emerald-400">$ 0</h3></div>
-                    <div class="card border-l-4 border-rose-500"><p class="text-slate-400 text-[10px] font-bold uppercase">Egresos</p><h3 id="dash-egresos" class="text-2xl font-black text-rose-500">$ 0</h3></div>
-                    <div class="card border-l-4 border-cyan-500"><p class="text-slate-400 text-[10px] font-bold uppercase">Saldo Neto</p><h3 id="dash-saldo" class="text-3xl font-black text-white">$ 0</h3></div>
-                </div>
-            </div>
-
-            <div id="clientes" class="section-content">
-                <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold italic text-cyan-400">Directorio de Clientes</h2><button onclick="openModal()" class="bg-cyan-500 text-slate-900 px-6 py-2 rounded-xl font-bold">+ Nuevo Registro</button></div>
-                <div class="card p-0 overflow-hidden"><table class="w-full text-left text-sm"><tbody id="lista-clientes" class="divide-y divide-slate-800"></tbody></table></div>
-            </div>
-
-            <div id="facturador" class="section-content">
-                <h2 class="text-2xl font-bold mb-6 italic text-cyan-400">Generador de Documentos</h2>
-                <div class="card max-w-4xl mx-auto border-t-8 border-cyan-500">
+        <main class="flex-grow p-10 bg-slate-950 overflow-y-auto">
+            <div id="facturador" class="section-content active-section">
+                <h2 class="text-2xl font-bold mb-6 text-cyan-400 italic">Nueva Operación</h2>
+                <div class="card max-w-4xl mx-auto border-t-4 border-cyan-500">
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <select id="doc-tipo"><option value="FACTURA">FACTURA (Venta)</option><option value="COTIZACION">COTIZACIÓN</option><option value="GASTO">GASTO (Compra)</option></select>
-                        <input type="text" id="doc-num" placeholder="No. de Documento">
+                        <select id="doc-tipo"><option value="FACTURA">FACTURA</option><option value="COTIZACION">COTIZACIÓN</option></select>
+                        <input type="text" id="doc-num" placeholder="No. Factura">
                     </div>
-                    <div class="mb-4"><select id="doc-tercero-select"></select></div>
-                    <div class="mb-4"><textarea id="doc-descripcion" rows="3" placeholder="Descripción detallada para el PDF..."></textarea></div>
-                    <div class="grid grid-cols-3 gap-6 mb-6">
-                        <input type="number" id="val-bruto" oninput="recalc()" placeholder="Monto $">
-                        <input type="number" id="val-desc" oninput="recalc()" placeholder="Descuento -">
-                        <div id="val-total" class="p-3 bg-slate-800 rounded-lg text-xl font-black text-cyan-400 text-center border border-cyan-500/30">$ 0</div>
+                    <select id="doc-tercero-select" class="mb-6"></select>
+
+                    <div class="bg-slate-800/30 p-4 rounded-xl mb-6">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase mb-4">Servicios / Productos</h3>
+                        <div id="items-container" class="space-y-3">
+                            </div>
+                        <button onclick="addItem()" class="mt-4 text-cyan-400 text-xs font-bold underline">+ AGREGAR LÍNEA</button>
                     </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="flex items-center gap-2"><input type="checkbox" id="check-iva" onchange="recalc()" class="w-5 h-5"><span class="text-sm">Aplicar IVA 19%</span></div>
+                        <input type="number" id="val-domicilio" oninput="recalc()" placeholder="Monto Domicilio $">
+                    </div>
+
+                    <div id="val-total" class="bg-cyan-500 text-slate-950 p-6 rounded-2xl text-3xl font-black text-center mb-8">TOTAL: $ 0</div>
+
                     <div class="flex gap-4">
-                        <button onclick="guardarDoc()" class="flex-grow bg-emerald-600 text-white font-black py-4 rounded-2xl uppercase hover:bg-emerald-500 transition-all">Sincronizar</button>
-                        <button onclick="generarPDF()" id="btn-pdf-quick" class="hidden flex-grow bg-cyan-500 text-slate-900 font-black py-4 rounded-2xl uppercase hover:bg-cyan-400 transition-all">Generar PDF</button>
+                        <button onclick="guardarDoc()" class="flex-grow bg-emerald-600 py-4 rounded-xl font-black">GUARDAR</button>
+                        <button id="btn-pdf-quick" onclick="generarPDF()" class="hidden flex-grow bg-white text-slate-950 py-4 rounded-xl font-black italic">DESCARGAR PDF</button>
                     </div>
                 </div>
             </div>
 
-            <div id="historial" class="section-content">
-                <h2 class="text-2xl font-bold mb-6 italic text-slate-300">Historial</h2>
-                <div class="card p-0 overflow-hidden"><table class="w-full text-left text-xs"><thead class="bg-slate-900/50 text-slate-500 font-bold uppercase"><tr><th class="p-4">Tipo</th><th class="p-4">ID</th><th class="p-4">Cliente</th><th class="p-4 text-right">Monto</th><th class="p-4 text-center">X</th></tr></thead><tbody id="tabla-historial" class="divide-y divide-slate-800"></tbody></table></div>
-            </div>
+            <div id="dashboard" class="section-content"> <h2 class="text-2xl">Balance General</h2> <div id="dash-saldo" class="text-4xl font-black mt-4">$ 0</div> </div>
+            <div id="clientes" class="section-content"> <button onclick="openModal()" class="bg-cyan-500 text-black px-4 py-2 rounded-lg mb-4">Nuevo Cliente</button> <div id="lista-clientes"></div> </div>
+            <div id="historial" class="section-content"> <div id="tabla-historial"></div> </div>
         </main>
     </div>
 
-    <div id="modal-tercero" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div id="modal-tercero" class="hidden fixed inset-0 bg-black/90 z-[1000] flex items-center justify-center p-4">
         <div class="card w-full max-w-sm">
-            <h3 class="text-xl font-black mb-6 text-cyan-400 uppercase italic">Nuevo Cliente</h3>
-            <div class="space-y-4">
-                <input type="text" id="m-nom" placeholder="Nombre completo">
-                <input type="text" id="m-tel" placeholder="Teléfono / WhatsApp">
-                <input type="text" id="m-dir" placeholder="Dirección">
-                <input type="email" id="m-email" placeholder="Correo electrónico">
-            </div>
-            <div class="flex gap-3 mt-8">
-                <button onclick="closeModal()" class="flex-grow bg-slate-800 py-3 rounded-xl font-bold">Cerrar</button>
-                <button onclick="confirmarRegistro()" class="flex-grow bg-cyan-500 text-slate-900 font-bold rounded-xl">Guardar</button>
-            </div>
+            <h3 class="font-black text-cyan-400 mb-4 uppercase">Nuevo Cliente</h3>
+            <input type="text" id="m-nom" placeholder="Nombre" class="mb-2">
+            <input type="text" id="m-tel" placeholder="Teléfono" class="mb-2">
+            <input type="text" id="m-dir" placeholder="Dirección" class="mb-2">
+            <input type="email" id="m-email" placeholder="Correo" class="mb-4">
+            <button onclick="confirmarRegistro()" class="w-full bg-cyan-500 text-black py-3 rounded-xl font-bold">GUARDAR</button>
         </div>
     </div>
 
     <script>
-        const CLOUD_URL = "https://script.google.com/macros/s/AKfycbygm7Q_ZqrreskRhl_MMN0D-FwmvrIczxbPlu_63-W8tzMOoYawz-4guuvhkB6Is8zO/exec";
-        let rz = JSON.parse(localStorage.getItem('rz_cloud_v15_7')) || { clientes: [], docs: [] };
+        let rz = JSON.parse(localStorage.getItem('rz_v17')) || { clientes: [], docs: [] };
+        let items = [{ desc: '', cant: 1, unit: 0 }];
 
-        function checkPin() {
-            const p = document.getElementById('pin-input').value;
-            if(p === '1234' || p === localStorage.getItem('rz_pin')) {
-                document.getElementById('lock-screen').style.display = 'none';
-                document.getElementById('main-app').classList.remove('opacity-0');
-                pullData();
-            } else { alert("PIN Incorrecto"); }
+        function renderItems() {
+            const container = document.getElementById('items-container');
+            container.innerHTML = items.map((item, index) => `
+                <div class="flex gap-2">
+                    <input type="text" value="${item.desc}" oninput="updateItem(${index}, 'desc', this.value)" placeholder="Descripción (ej: Formateo)" class="flex-grow">
+                    <input type="number" value="${item.cant}" oninput="updateItem(${index}, 'cant', this.value)" placeholder="Cant" class="w-16 text-center">
+                    <input type="number" value="${item.unit}" oninput="updateItem(${index}, 'unit', this.value)" placeholder="Unit $" class="w-28 text-right">
+                    <button onclick="removeItem(${index})" class="text-rose-500 px-2"><i class="fas fa-times"></i></button>
+                </div>
+            `).join('');
+            recalc();
         }
 
-        async function pushData() {
-            document.getElementById('sync-loader').style.display = 'block';
-            try { await fetch(CLOUD_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(rz) }); } catch (e) {}
-            setTimeout(() => { document.getElementById('sync-loader').style.display = 'none'; }, 1500);
-        }
-
-        async function pullData() {
-            document.getElementById('sync-loader').style.display = 'block';
-            try {
-                const response = await fetch(CLOUD_URL);
-                const cloudData = await response.json();
-                if (cloudData && cloudData.docs) { rz = cloudData; saveLocal(); }
-            } catch (e) {}
-            document.getElementById('sync-loader').style.display = 'none';
-        }
-
-        function saveLocal() { localStorage.setItem('rz_cloud_v15_7', JSON.stringify(rz)); render(); }
-
-        function render() {
-            // Render Clientes con botón Eliminar
-            document.getElementById('lista-clientes').innerHTML = rz.clientes.map(c => `
-                <tr class="hover:bg-slate-800/20">
-                    <td class="p-4">
-                        <p class="font-bold text-cyan-400">${c.nom}</p>
-                        <p class="text-[10px] text-slate-500 uppercase">${c.email || 'Sin Correo'}</p>
-                    </td>
-                    <td class="p-4 text-slate-400 text-xs">${c.tel}</td>
-                    <td class="p-4 text-center">
-                        <button onclick="borrarCliente(${c.id})" class="text-rose-500 hover:text-rose-400 transition-all">
-                            <i class="fas fa-user-minus"></i>
-                        </button>
-                    </td>
-                </tr>`).join('');
-
-            document.getElementById('doc-tercero-select').innerHTML = rz.clientes.map(c => `<option value="${c.nom}">${c.nom}</option>`).join('');
-
-            document.getElementById('tabla-historial').innerHTML = rz.docs.map(d => {
-                let col = d.tipo === 'FACTURA' ? 'text-emerald-400' : (d.tipo === 'GASTO' ? 'text-rose-500' : 'text-cyan-400');
-                return `<tr class="hover:bg-slate-800/40"><td class="p-4 font-bold text-[9px] opacity-50 uppercase">${d.tipo}</td><td class="p-4 font-black text-white">${d.num}</td><td class="p-4 text-slate-400">${d.tercero}</td><td class="p-4 font-black ${col} text-right">$ ${d.monto.toLocaleString()}</td><td class="p-4 text-center"><button onclick="borrarOperacion(${d.id})" class="text-rose-500"><i class="fas fa-times-circle"></i></button></td></tr>`;
-            }).join('');
-
-            let ti=0, te=0; rz.docs.forEach(d => { if(d.tipo==='FACTURA') ti+=d.monto; else if(d.tipo==='GASTO') te+=d.monto; });
-            document.getElementById('dash-ingresos').innerText = '$ ' + ti.toLocaleString();
-            document.getElementById('dash-egresos').innerText = '$ ' + te.toLocaleString();
-            document.getElementById('dash-saldo').innerText = '$ ' + (ti - te).toLocaleString();
-        }
-
-        function borrarCliente(id) {
-            if(confirm('¿ESTÁS SEGURO? Se eliminarán los datos de contacto de este cliente permanentemente.')) {
-                rz.clientes = rz.clientes.filter(c => c.id !== id);
-                saveLocal();
-                pushData();
-            }
-        }
-
-        function generarPDF() {
-            const tipo = document.getElementById('doc-tipo').value;
-            const clienteNombre = document.getElementById('doc-tercero-select').value;
-            const clienteObj = rz.clientes.find(c => c.nom === clienteNombre);
-
-            document.getElementById('pdf-titulo-doc').innerText = tipo === 'COTIZACION' ? 'Cotización No.' : 'Factura No.';
-            document.getElementById('pdf-num').innerText = document.getElementById('doc-num').value;
-            document.getElementById('pdf-cliente').innerText = clienteNombre;
-            document.getElementById('pdf-dir-correo').innerText = `${clienteObj?.dir || ''} | ${clienteObj?.email || ''} | Tel: ${clienteObj?.tel || ''}`;
-            document.getElementById('pdf-fecha').innerText = new Date().toLocaleDateString();
-            document.getElementById('pdf-desc').innerText = document.getElementById('doc-descripcion').value || "Servicio Técnico";
-            document.getElementById('pdf-monto').innerText = document.getElementById('val-total').innerText;
-
-            setTimeout(() => {
-                const element = document.getElementById('factura-documento');
-                const opt = { margin:0, filename:`${tipo}_${document.getElementById('doc-num').value}.pdf`, image:{type:'jpeg', quality:0.98}, html2canvas:{scale:2, useCORS:true}, jsPDF:{unit:'mm', format:'a4', orientation:'portrait'} };
-                html2pdf().set(opt).from(element).save();
-            }, 300);
-        }
-
-        function confirmarRegistro() {
-            const nom = document.getElementById('m-nom').value; if(!nom) return;
-            rz.clientes.push({ 
-                id: Date.now(), 
-                nom, 
-                tel: document.getElementById('m-tel').value,
-                dir: document.getElementById('m-dir').value,
-                email: document.getElementById('m-email').value
-            });
-            saveLocal(); pushData(); closeModal();
-        }
-
-        function guardarDoc() {
-            const neto = recalc(); const tero = document.getElementById('doc-tercero-select').value;
-            if(!tero || neto <= 0) return alert("Faltan datos");
-            const tipo = document.getElementById('doc-tipo').value;
-            rz.docs.unshift({ id: Date.now(), num: document.getElementById('doc-num').value, tercero: tero, tipo: tipo, monto: neto, desc: document.getElementById('doc-descripcion').value });
-            saveLocal(); pushData();
-            if(tipo !== 'GASTO') document.getElementById('btn-pdf-quick').classList.remove('hidden');
-            alert("Operación Sincronizada");
+        function addItem() { items.push({ desc: '', cant: 1, unit: 0 }); renderItems(); }
+        function removeItem(index) { if(items.length > 1) { items.splice(index, 1); renderItems(); } }
+        function updateItem(index, key, val) { 
+            items[index][key] = (key === 'desc') ? val : parseFloat(val) || 0; 
+            recalc(); 
         }
 
         function recalc() {
-            const t = (parseFloat(document.getElementById('val-bruto').value) || 0) - (parseFloat(document.getElementById('val-desc').value) || 0);
-            document.getElementById('val-total').innerText = '$ ' + t.toLocaleString();
-            return t;
+            let subtotal = items.reduce((acc, item) => acc + (item.cant * item.unit), 0);
+            let iva = document.getElementById('check-iva').checked ? (subtotal * 0.19) : 0;
+            let domi = parseFloat(document.getElementById('val-domicilio').value) || 0;
+            let total = subtotal + iva + domi;
+            document.getElementById('val-total').innerText = 'TOTAL: $ ' + total.toLocaleString();
+            return { subtotal, iva, domi, total };
         }
-        function openModal() { document.getElementById('modal-tercero').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('modal-tercero').classList.add('hidden'); }
+
+        function generarPDF() {
+            const cliente = rz.clientes.find(c => c.nom === document.getElementById('doc-tercero-select').value);
+            const vals = recalc();
+
+            document.getElementById('pdf-num').innerText = document.getElementById('doc-num').value;
+            document.getElementById('pdf-cliente').innerText = cliente.nom;
+            document.getElementById('pdf-dir-correo').innerText = `${cliente.dir} | ${cliente.tel}`;
+            document.getElementById('pdf-fecha').innerText = new Date().toLocaleDateString();
+
+            // Llenar tabla del PDF
+            document.getElementById('pdf-tabla-body').innerHTML = items.map(i => `
+                <tr style="border-bottom: 1px solid #eee; font-size: 12px;">
+                    <td style="padding: 10px;">${i.desc}</td>
+                    <td style="padding: 10px; text-align: center;">${i.cant}</td>
+                    <td style="padding: 10px; text-align: right;">$ ${i.unit.toLocaleString()}</td>
+                    <td style="padding: 10px; text-align: right;">$ ${(i.cant * i.unit).toLocaleString()}</td>
+                </tr>
+            `).join('');
+
+            // Totales
+            let htmlTotales = `<div>Subtotal: $ ${vals.subtotal.toLocaleString()}</div>`;
+            if(vals.iva > 0) htmlTotales += `<div>IVA (19%): $ ${vals.iva.toLocaleString()}</div>`;
+            if(vals.domi > 0) htmlTotales += `<div>Domicilio: $ ${vals.domi.toLocaleString()}</div>`;
+            htmlTotales += `<div style="font-size: 18px; font-weight: 900; margin-top: 10px; color: #0284c7;">TOTAL: $ ${vals.total.toLocaleString()}</div>`;
+            document.getElementById('pdf-bloque-totales').innerHTML = htmlTotales;
+
+            const element = document.getElementById('factura-documento');
+            html2pdf().set({ margin: 0, filename: `RZ_${document.getElementById('doc-num').value}.pdf`, html2canvas: { scale: 3 }, jsPDF: { unit: 'mm', format: 'a4' } }).from(element).save();
+        }
+
+        function guardarDoc() {
+            const v = recalc();
+            rz.docs.unshift({ id: Date.now(), num: document.getElementById('doc-num').value, tercero: document.getElementById('doc-tercero-select').value, total: v.total });
+            localStorage.setItem('rz_v17', JSON.stringify(rz));
+            document.getElementById('btn-pdf-quick').classList.remove('hidden');
+            alert("Guardado");
+        }
+
+        function confirmarRegistro() {
+            rz.clientes.push({ id: Date.now(), nom: document.getElementById('m-nom').value, tel: document.getElementById('m-tel').value, dir: document.getElementById('m-dir').value, email: document.getElementById('m-email').value });
+            localStorage.setItem('rz_v17', JSON.stringify(rz));
+            location.reload();
+        }
+
         function showSection(id, el) {
             document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active-section'));
             document.getElementById(id).classList.add('active-section');
-            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active-link'));
-            if(el) el.classList.add('active-link');
         }
-        function logout() { location.reload(); }
-        function borrarOperacion(id) { if(confirm('¿ELIMINAR ESTE REGISTRO? Esto afectará el balance de caja.')) { rz.docs = rz.docs.filter(d => d.id !== id); saveLocal(); pushData(); } }
-        render();
+        function openModal() { document.getElementById('modal-tercero').classList.remove('hidden'); }
+        
+        // Carga inicial
+        document.getElementById('doc-tercero-select').innerHTML = rz.clientes.map(c => `<option value="${c.nom}">${c.nom}</option>`).join('');
+        renderItems();
     </script>
 </body>
 </html>
