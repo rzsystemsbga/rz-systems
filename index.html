@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RZ Systems | Business Suite v10.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --rz-cyan: #00e5ff; --rz-dark: #0b1120; }
+        body { background-color: var(--rz-dark); color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
+        .sidebar-link { cursor: pointer; transition: 0.2s; border-radius: 12px; margin-bottom: 4px; color: #94a3b8; }
+        .active-link { background: rgba(0, 229, 255, 0.1); color: var(--rz-cyan); border-right: 4px solid var(--rz-cyan); }
+        .section-content { display: none; height: 100%; overflow-y: auto; padding-bottom: 100px; }
+        .active-section { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        input, select, textarea { background: #1e293b !important; border: 1px solid #334155 !important; color: white !important; border-radius: 10px; padding: 12px; outline: none; width: 100%; }
+        textarea { min-height: 80px; resize: none; }
+        .card { background: #111827; border: 1px solid #1f2937; border-radius: 24px; padding: 24px; }
+        .badge-ref { background: rgba(244, 63, 94, 0.1); color: #f43f5e; padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid rgba(244, 63, 94, 0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="flex h-screen">
+        <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col p-6">
+            <div class="mb-10 text-center uppercase">
+                <h1 class="text-xl font-black italic tracking-tighter">RZ <span class="text-cyan-400">Systems</span></h1>
+            </div>
+            <nav class="flex-grow space-y-1 text-sm">
+                <div onclick="showSection('dashboard', this)" class="sidebar-link active-link p-4 flex items-center gap-4"><i class="fas fa-chart-pie"></i> Balance</div>
+                <div onclick="showSection('clientes', this)" class="sidebar-link p-4 flex items-center gap-4"><i class="fas fa-users"></i> Clientes</div>
+                <div onclick="showSection('proveedores', this)" class="sidebar-link p-4 flex items-center gap-4"><i class="fas fa-truck-pickup"></i> Proveedores</div>
+                <div onclick="showSection('facturador', this)" class="sidebar-link p-4 flex items-center gap-4"><i class="fas fa-plus-circle"></i> Nueva Operación</div>
+                <div onclick="showSection('historial', this)" id="link-historial" class="sidebar-link p-4 flex items-center gap-4"><i class="fas fa-list"></i> Historial / Libros</div>
+            </nav>
+        </aside>
+
+        <main class="flex-grow p-10 bg-slate-950 overflow-hidden">
+            
+            <div id="dashboard" class="section-content active-section">
+                <h2 class="text-3xl font-bold mb-8 italic">Control de Caja</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card border-l-4 border-emerald-500"><p class="text-slate-400 text-[10px] uppercase font-bold">Ventas Totales</p><h3 id="dash-ingresos" class="text-2xl font-black text-emerald-400">$ 0</h3></div>
+                    <div class="card border-l-4 border-rose-500"><p class="text-slate-400 text-[10px] uppercase font-bold">Gastos Técnicos</p><h3 id="dash-egresos" class="text-2xl font-black text-rose-500">$ 0</h3></div>
+                    <div class="card border-l-4 border-cyan-500"><p class="text-slate-400 text-[10px] uppercase font-bold">Utilidad Neta</p><h3 id="dash-saldo" class="text-3xl font-black">$ 0</h3></div>
+                </div>
+            </div>
+
+            <div id="clientes" class="section-content">
+                <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold italic">Clientes</h2><button onclick="openModal('clientes')" class="bg-cyan-500 text-slate-900 px-6 py-2 rounded-xl font-bold">+ Nuevo Cliente</button></div>
+                <div class="card p-0 overflow-hidden"><table class="w-full text-left text-sm"><tbody id="lista-clientes" class="divide-y divide-slate-800"></tbody></table></div>
+            </div>
+
+            <div id="proveedores" class="section-content">
+                <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold italic text-amber-500">Proveedores</h2><button onclick="openModal('proveedores')" class="bg-amber-500 text-slate-900 px-6 py-2 rounded-xl font-bold">+ Nuevo Proveedor</button></div>
+                <div class="card p-0 overflow-hidden"><table class="w-full text-left text-sm"><tbody id="lista-proveedores" class="divide-y divide-slate-800"></tbody></table></div>
+            </div>
+
+            <div id="facturador" class="section-content">
+                <h2 class="text-2xl font-bold mb-6 italic">Registrar Transacción</h2>
+                <div class="card max-w-4xl mx-auto border-t-8 border-cyan-500">
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div class="col-span-1">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">Tipo</label>
+                            <select id="doc-tipo" onchange="toggleRefGasto()">
+                                <option value="FACTURA">FACTURA (Venta)</option>
+                                <option value="GASTO">GASTO (Taller/Compra)</option>
+                                <option value="COTIZACION">COTIZACIÓN</option>
+                            </select>
+                        </div>
+                        <div class="col-span-1">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">Documento N°</label>
+                            <input type="text" id="doc-num" class="font-bold text-cyan-400">
+                        </div>
+                        <div id="box-ref-gasto" class="col-span-1 hidden">
+                            <label class="text-[10px] font-bold text-rose-400 uppercase italic">¿A qué Factura aplica?</label>
+                            <input type="text" id="doc-ref-factura" placeholder="Ej: RZS-001" class="border-rose-500/50">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Tercero Asociado</label>
+                        <select id="doc-tercero-select" class="mt-1"></select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Descripción / Detalles del Trabajo</label>
+                        <textarea id="doc-descripcion" placeholder="Escribe aquí los detalles del arreglo, repuestos usados o notas del cliente..."></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-6 mb-6">
+                        <input type="number" id="val-bruto" oninput="recalc()" placeholder="Monto $">
+                        <input type="number" id="val-desc" oninput="recalc()" placeholder="Descuento -" class="text-rose-400">
+                        <div id="val-total" class="p-3 bg-slate-800 rounded-lg text-xl font-black text-cyan-400 border border-cyan-500/30">$ 0</div>
+                    </div>
+
+                    <button onclick="guardarDoc()" class="w-full bg-cyan-500 text-slate-900 font-black py-4 rounded-2xl shadow-xl hover:scale-[1.01] transition-all">REGISTRAR EN EL SISTEMA</button>
+                </div>
+            </div>
+
+            <div id="historial" class="section-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="historial-titulo" class="text-2xl font-bold italic text-white">Libro Diario</h2>
+                    <button id="btn-reset-filtro" onclick="render()" class="hidden text-xs bg-slate-800 px-4 py-2 rounded-lg text-cyan-400">Ver Todo</button>
+                </div>
+                <div class="card p-0 overflow-hidden"><table class="w-full text-left text-xs"><thead class="bg-slate-800 text-slate-500 uppercase"><tr><th class="p-4">Doc / Ref</th><th class="p-4">Tercero</th><th class="p-4">Descripción</th><th class="p-4">Tipo</th><th class="p-4 text-right">Valor</th></tr></thead><tbody id="tabla-historial" class="divide-y divide-slate-800"></tbody></table></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-tercero" class="hidden fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
+        <div class="card w-full max-w-sm"><h3 id="modal-title" class="text-xl font-black mb-6 text-cyan-400">Registro</h3><div class="space-y-4"><input type="text" id="m-nom" placeholder="Nombre"><input type="text" id="m-id" placeholder="Cédula/NIT"><input type="text" id="m-tel" placeholder="Teléfono"></div><div class="flex gap-3 mt-8"><button onclick="closeModal()" class="flex-grow bg-slate-800 py-3 rounded-xl">Cancelar</button><button onclick="confirmarRegistro()" class="flex-grow bg-cyan-500 text-slate-900 font-bold rounded-xl">Guardar</button></div></div>
+    </div>
+
+    <script>
+        let rz = JSON.parse(localStorage.getItem('rz_v10')) || { clientes: [], proveedores: [], docs: [] };
+        let activeCat = '';
+
+        function save() { localStorage.setItem('rz_v10', JSON.stringify(rz)); render(); }
+
+        function showSection(id, el) {
+            document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active-section'));
+            document.getElementById(id).classList.add('active-section');
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active-link'));
+            if(el) el.classList.add('active-link');
+            if(id === 'facturador') document.getElementById('doc-num').value = 'RZS-' + (rz.docs.length + 1).toString().padStart(3, '0');
+        }
+
+        function toggleRefGasto() {
+            const tipo = document.getElementById('doc-tipo').value;
+            document.getElementById('box-ref-gasto').classList.toggle('hidden', tipo !== 'GASTO');
+        }
+
+        function verFacturasDe(nombre) {
+            render(nombre);
+            showSection('historial', document.getElementById('link-historial'));
+            document.getElementById('historial-titulo').innerText = "Viendo: " + nombre;
+            document.getElementById('btn-reset-filtro').classList.remove('hidden');
+        }
+
+        function openModal(cat) { activeCat = cat; document.getElementById('modal-tercero').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('modal-tercero').classList.add('hidden'); }
+
+        function confirmarRegistro() {
+            const nom = document.getElementById('m-nom').value;
+            if(!nom) return;
+            rz[activeCat].push({ id: Date.now(), nom, ident: document.getElementById('m-id').value, tel: document.getElementById('m-tel').value });
+            save(); closeModal();
+            document.querySelectorAll('#modal-tercero input').forEach(i => i.value = '');
+        }
+
+        function recalc() {
+            const b = parseFloat(document.getElementById('val-bruto').value) || 0;
+            const d = parseFloat(document.getElementById('val-desc').value) || 0;
+            const t = b - d;
+            document.getElementById('val-total').innerText = '$ ' + t.toLocaleString();
+            return t;
+        }
+
+        function guardarDoc() {
+            const neto = recalc();
+            const tercero = document.getElementById('doc-tercero-select').value;
+            if(!tercero || neto <= 0) return alert("Completa los datos");
+
+            const nuevoDoc = {
+                id: Date.now(),
+                num: document.getElementById('doc-num').value,
+                tercero,
+                tipo: document.getElementById('doc-tipo').value,
+                monto: neto,
+                desc: document.getElementById('doc-descripcion').value,
+                ref: document.getElementById('doc-ref-factura').value // Vínculo
+            };
+
+            rz.docs.unshift(nuevoDoc);
+            save(); alert("¡Documento Registrado!");
+            document.getElementById('val-bruto').value = ''; 
+            document.getElementById('val-desc').value = ''; 
+            document.getElementById('doc-descripcion').value = '';
+            document.getElementById('doc-ref-factura').value = '';
+            recalc();
+        }
+
+        function eliminarTercero(id, cat) { rz[cat] = rz[cat].filter(i => i.id !== id); save(); }
+
+        function render(filtroNombre = null) {
+            if(!filtroNombre) {
+                document.getElementById('historial-titulo').innerText = "Libro Diario";
+                document.getElementById('btn-reset-filtro').classList.add('hidden');
+            }
+
+            const rowT = (t, cat, col) => `<tr class="hover:bg-slate-800/40"><td class="p-4"><p class="font-bold ${col}">${t.nom}</p><p class="text-[10px] text-slate-500">${t.ident || ''}</p></td><td class="p-4">${t.tel}</td><td class="p-4 text-right flex gap-3 justify-end items-center"><button onclick="verFacturasDe('${t.nom}')" class="text-[9px] bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg">Movimientos</button><button onclick="eliminarTercero(${t.id}, '${cat}')" class="text-rose-500"><i class="fas fa-trash"></i></button></td></tr>`;
+            
+            document.getElementById('lista-clientes').innerHTML = rz.clientes.map(c => rowT(c, 'clientes', 'text-cyan-400')).join('');
+            document.getElementById('lista-proveedores').innerHTML = rz.proveedores.map(p => rowT(p, 'proveedores', 'text-amber-500')).join('');
+
+            document.getElementById('doc-tercero-select').innerHTML = '<optgroup label="CLIENTES">' + rz.clientes.map(c => `<option value="${c.nom}">${c.nom}</option>`).join('') + '</optgroup>' + '<optgroup label="PROVEEDORES">' + rz.proveedores.map(p => `<option value="${p.nom}">${p.nom}</option>`).join('') + '</optgroup>';
+
+            const filtrados = filtroNombre ? rz.docs.filter(d => d.tercero === filtroNombre) : rz.docs;
+            
+            document.getElementById('tabla-historial').innerHTML = filtrados.map(d => {
+                let col = d.tipo === 'FACTURA' ? 'text-emerald-400' : (d.tipo === 'GASTO' ? 'text-rose-500' : 'text-amber-400');
+                return `<tr>
+                    <td class="p-4"><p class="font-black text-white">${d.num}</p>${d.ref ? `<span class="badge-ref">Ref: ${d.ref}</span>` : ''}</td>
+                    <td class="p-4 font-bold text-slate-300">${d.tercero}</td>
+                    <td class="p-4 text-slate-500 italic max-w-xs truncate">${d.desc || 'Sin detalle'}</td>
+                    <td class="p-4 text-[10px] font-black ${col}">${d.tipo}</td>
+                    <td class="p-4 text-right font-black ${col}">$ ${d.monto.toLocaleString()}</td>
+                </tr>`;
+            }).join('');
+
+            let ti=0, te=0; rz.docs.forEach(d => { if(d.tipo==='FACTURA') ti+=d.monto; if(d.tipo==='GASTO') te+=d.monto; });
+            document.getElementById('dash-ingresos').innerText = '$ ' + ti.toLocaleString();
+            document.getElementById('dash-egresos').innerText = '$ ' + te.toLocaleString();
+            document.getElementById('dash-saldo').innerText = '$ ' + (ti - te).toLocaleString();
+        }
+        render();
+    </script>
+</body>
+</html>
